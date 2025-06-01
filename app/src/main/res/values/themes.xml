@@ -5,5 +5,5 @@
 <!--</resources>-->
 
 <resources>
-<style name="Theme.ExpenseManager" parent="Theme.AppCompat.Light.NoActionBar" />
+    <style name="Theme.ExpenseManager" parent="Theme.MaterialComponents.Light.NoActionBar" />
 </resources>
