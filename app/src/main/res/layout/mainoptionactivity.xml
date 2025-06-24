@@ -29,6 +29,43 @@
         android:textColor="#666666"
         android:layout_marginBottom="32dp" />
 
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginBottom="20dp">
+
+        <LinearLayout
+            android:id="@+id/btnAddExpense"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_input_add"
+                app:tint="#007AFF"
+                android:contentDescription="Icon thêm chi tiêu" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="Thêm mới chi tiêu"
+                android:textSize="18sp"
+                android:textColor="#007AFF"
+                android:textStyle="bold"
+                android:layout_marginStart="16dp"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
     <!-- Nút chức năng dưới dạng CardView -->
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"

@@ -1,17 +1,44 @@
 package com.toan.expensemanager.uiMain.expense;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.*;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.toan.expensemanager.R;
+import com.toan.expensemanager.data.api.ApiService;
+import com.toan.expensemanager.data.api.RetrofitClient;
+import com.toan.expensemanager.data.model.Category;
+import com.toan.expensemanager.data.model.Expense;
 
-import java.util.Calendar;
+import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ViewExpenseActivity extends AppCompatActivity {
+
     TextView tvSelectedDate;
     LinearLayout expenseList;
+    Spinner spinnerCategory;
+
+    String selectedDate = "";
+    int selectedCategoryId = -1;
+
+    List<Category> categoryList = new ArrayList<>();
+    ArrayAdapter<Category> categoryAdapter;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        fetchExpenses();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,42 +46,129 @@ public class ViewExpenseActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view_expense);
 
         tvSelectedDate = findViewById(R.id.tvSelectedDate);
-        expenseList = findViewById(R.id.expensesContainer);  // sửa đúng id
+        expenseList = findViewById(R.id.expensesContainer);
+        spinnerCategory = findViewById(R.id.spinnerCategory);
 
-        // Khởi tạo ngày hiện tại hiển thị trên tvSelectedDate
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        int userId = prefs.getInt("userId", -1);
+        if (userId == -1) {
+            Toast.makeText(this, "Lỗi: Chưa đăng nhập", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
         Calendar c = Calendar.getInstance();
-        String currentDate = c.get(Calendar.DAY_OF_MONTH) + "/" + (c.get(Calendar.MONTH) + 1) + "/" + c.get(Calendar.YEAR);
-        tvSelectedDate.setText(currentDate);
-        showExpensesForDate(currentDate);
+        selectedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(c.getTime());
+        tvSelectedDate.setText(new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(c.getTime()));
+
+        loadCategories();
 
         tvSelectedDate.setOnClickListener(v -> {
             Calendar cal = Calendar.getInstance();
             new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-                String date = dayOfMonth + "/" + (month + 1) + "/" + year;
-                tvSelectedDate.setText(date);
-                showExpensesForDate(date);
+                Calendar selectedCal = Calendar.getInstance();
+                selectedCal.set(year, month, dayOfMonth);
+                selectedDate = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(selectedCal.getTime());
+                tvSelectedDate.setText(new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(selectedCal.getTime()));
+                fetchExpenses();
             }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
+        });
+
+        spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                if (!categoryList.isEmpty()) {
+                    selectedCategoryId = categoryList.get(pos).getId();
+                    fetchExpenses();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
-    void showExpensesForDate(String date) {
-        expenseList.removeAllViews();
+    private void loadCategories() {
+        ApiService api = RetrofitClient.getInstance().create(ApiService.class);
+        api.getAllCategories().enqueue(new Callback<List<Category>>() {
+            @Override
+            public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    categoryList = new ArrayList<>();
 
-        if (date.equals("15/5/2025")) {
-            addExpenseView("Ăn trưa", "Cơm gà xối mỡ", "50,000đ");
-            addExpenseView("Cà phê", "Cà phê sữa đá", "25,000đ");
-        } else if (date.equals("1/6/2025")) {
-            addExpenseView("Ăn sáng", "Bún bò Huế", "100,000đ");
-            addExpenseView("Đi lại", "Taxi sân bay", "150,000đ");
-            addExpenseView("Mua sắm", "Quần áo", "250,000đ");
-        } else {
-            Toast.makeText(this, "Không có chi tiêu ngày này", Toast.LENGTH_SHORT).show();
-        }
+                    // ✅ Thêm mục "Tất cả"
+                    Category allCategory = new Category();
+                    allCategory.setId(-1);
+                    allCategory.setName("Tất cả");
+                    categoryList.add(allCategory);
+
+                    // ✅ Thêm các mục từ API
+                    categoryList.addAll(response.body());
+
+                    categoryAdapter = new ArrayAdapter<>(ViewExpenseActivity.this,
+                            android.R.layout.simple_spinner_dropdown_item, categoryList);
+                    spinnerCategory.setAdapter(categoryAdapter);
+
+                    selectedCategoryId = -1;
+                    fetchExpenses();
+                } else {
+                    Toast.makeText(ViewExpenseActivity.this, "Lỗi load danh mục", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Category>> call, Throwable t) {
+                Toast.makeText(ViewExpenseActivity.this, "Lỗi kết nối danh mục", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    void addExpenseView(String title, String description, String amount) {
+    private void fetchExpenses() {
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        int userId = prefs.getInt("userId", -1);
+        if (userId == -1) return;
+
+        expenseList.removeAllViews();
+        if (selectedDate.isEmpty()) return;
+
+        ApiService api = RetrofitClient.getInstance().create(ApiService.class);
+        Call<List<Expense>> call;
+
+        if (selectedCategoryId == -1) {
+            // ✅ Lấy tất cả chi tiêu theo ngày
+            call = api.getExpensesByUserAndDate(userId, selectedDate);
+        } else {
+            // ✅ Lọc theo danh mục
+            call = api.getByUserDateAndCategory(userId, selectedDate, selectedCategoryId);
+        }
+
+        call.enqueue(new Callback<List<Expense>>() {
+            @Override
+            public void onResponse(Call<List<Expense>> call, Response<List<Expense>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<Expense> list = response.body();
+                    if (list.isEmpty()) {
+                        Toast.makeText(ViewExpenseActivity.this, "Không có dữ liệu", Toast.LENGTH_SHORT).show();
+                    } else {
+                        for (Expense e : list) {
+                            addExpenseView(e);
+                        }
+                    }
+                } else {
+                    Toast.makeText(ViewExpenseActivity.this, "Lỗi server", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Expense>> call, Throwable t) {
+                Toast.makeText(ViewExpenseActivity.this, "Lỗi mạng", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    void addExpenseView(Expense expense) {
         LinearLayout container = new LinearLayout(this);
-        container.setOrientation(LinearLayout.HORIZONTAL);
+        container.setOrientation(LinearLayout.VERTICAL);
         container.setPadding(16, 16, 16, 16);
         container.setBackgroundResource(R.drawable.viewex_card_background);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
@@ -62,36 +176,68 @@ public class ViewExpenseActivity extends AppCompatActivity {
         params.setMargins(0, 0, 0, 24);
         container.setLayoutParams(params);
 
-        // Container cho title + description, weight=1
-        LinearLayout textContainer = new LinearLayout(this);
-        textContainer.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1);
-        textContainer.setLayoutParams(textParams);
-
         TextView tvTitle = new TextView(this);
-        tvTitle.setText(title);
+        tvTitle.setText("Mô tả: " + expense.getDescription());
         tvTitle.setTextSize(16);
-        tvTitle.setTypeface(null, android.graphics.Typeface.BOLD);
         tvTitle.setTextColor(0xFF333333);
-        textContainer.addView(tvTitle);
-
-        if (description != null && !description.isEmpty()) {
-            TextView tvDesc = new TextView(this);
-            tvDesc.setText(description);
-            tvDesc.setTextSize(14);
-            tvDesc.setTextColor(0xFF666666);
-            textContainer.addView(tvDesc);
-        }
 
         TextView tvAmount = new TextView(this);
-        tvAmount.setText(amount);
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        String formattedAmount = formatter.format(expense.getAmount());
+        tvAmount.setText("Số tiền: " + formattedAmount + "đ");
         tvAmount.setTextSize(16);
         tvAmount.setTextColor(0xFFFF3B30);
-        tvAmount.setTypeface(null, android.graphics.Typeface.BOLD);
 
-        container.addView(textContainer);
+        LinearLayout buttonLayout = new LinearLayout(this);
+        buttonLayout.setOrientation(LinearLayout.HORIZONTAL);
+
+        Button btnEdit = new Button(this);
+        btnEdit.setText("Sửa");
+        btnEdit.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AddExpenseActivity.class);
+            intent.putExtra("isEdit", true);
+            intent.putExtra("expenseId", expense.getId());
+            startActivity(intent);
+        });
+
+        Button btnDelete = new Button(this);
+        btnDelete.setText("Xóa");
+        btnDelete.setOnClickListener(v -> {
+            new AlertDialog.Builder(this)
+                    .setTitle("Xác nhận xóa")
+                    .setMessage("Bạn có chắc chắn muốn xóa khoản chi này không?")
+                    .setPositiveButton("Có", (dialog, which) -> deleteExpense(expense.getId()))
+                    .setNegativeButton("Không", null)
+                    .show();
+        });
+
+        buttonLayout.addView(btnEdit);
+        buttonLayout.addView(btnDelete);
+
+        container.addView(tvTitle);
         container.addView(tvAmount);
+        container.addView(buttonLayout);
 
         expenseList.addView(container);
+    }
+
+    private void deleteExpense(int id) {
+        ApiService api = RetrofitClient.getInstance().create(ApiService.class);
+        api.deleteExpense(id).enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(ViewExpenseActivity.this, "Xóa thành công", Toast.LENGTH_SHORT).show();
+                    fetchExpenses();
+                } else {
+                    Toast.makeText(ViewExpenseActivity.this, "Xóa thất bại", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(ViewExpenseActivity.this, "Lỗi mạng khi xóa", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
