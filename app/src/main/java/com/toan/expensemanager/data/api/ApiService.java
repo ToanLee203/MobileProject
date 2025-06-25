@@ -4,6 +4,7 @@ import com.toan.expensemanager.data.model.Expense;
 import com.toan.expensemanager.data.model.Category;
 import com.toan.expensemanager.data.model.ExpenseRequest;
 import com.toan.expensemanager.data.model.LoginRequest;
+import com.toan.expensemanager.data.model.RegisterRequest;
 import com.toan.expensemanager.data.model.User;
 import com.toan.expensemanager.data.model.UserResponse;
 
@@ -55,6 +56,23 @@ public interface ApiService {
     // UPDATE LẠI CHI TIÊU
     @PUT("api/Expense/{id}")
     Call<Void> updateExpense(@Path("id") int id, @Body ExpenseRequest req);
-
+    // API LẤY TỪ NGÀY ĐẾN NGÀY CHI TIÊU
+    @GET("api/Expense/search/user/{userId}/from/{fromDate}/to/{toDate}")
+    Call<List<Expense>> getExpensesByUserAndDateRange(
+            @Path("userId") int userId,
+            @Path("fromDate") String fromDate, // yyyy-MM-dd
+            @Path("toDate") String toDate      // yyyy-MM-dd
+    );
+    // API LẤY THEO TỪ NGÀY ĐẾN NGÀY VÀ LỌC THM THEO DANH MỤC
+    @GET("api/Expense/search/user/{userId}/from/{fromDate}/to/{toDate}/category/{categoryId}")
+    Call<List<Expense>> getExpensesByUserDateRangeAndCategory(
+            @Path("userId") int userId,
+            @Path("fromDate") String fromDate,
+            @Path("toDate") String toDate,
+            @Path("categoryId") int categoryId
+    );
+    // DĂNG KÝ NGUOI DUNG
+    @POST("api/User/register")
+    Call<User> register(@Body RegisterRequest request);
 
 }

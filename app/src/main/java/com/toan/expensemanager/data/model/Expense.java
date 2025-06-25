@@ -7,7 +7,7 @@ public class Expense {
     private String date;
     private int categoryId;
     private int userId;
-
+    private Category category; // ✅ Thêm dòng này
     public Expense(double amount, String description, String date, int categoryId, int userId) {
         this.amount = amount;
         this.description = description;
@@ -15,7 +15,9 @@ public class Expense {
         this.categoryId = categoryId;
         this.userId = userId;
     }
-
+    public Category getCategory() {
+        return category;
+    }
     // ✅ Getter và Setter cho id
     public int getId() {
         return id;

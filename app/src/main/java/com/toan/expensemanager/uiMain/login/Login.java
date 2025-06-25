@@ -23,11 +23,20 @@ import retrofit2.Response;
 public class Login extends AppCompatActivity {
 
     EditText editTextUsername, editTextPassword;
-    Button buttonLogin;
+    Button buttonLogin , buttonRegister;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
+        int userId = prefs.getInt("userId", -1);
+        if (userId != -1) {
+            Intent intent = new Intent(Login.this, MainOptionActivity.class);
+            startActivity(intent);
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         editTextUsername = findViewById(R.id.editTextUsername);
@@ -35,7 +44,14 @@ public class Login extends AppCompatActivity {
         buttonLogin = findViewById(R.id.buttonLogin);
 
         buttonLogin.setOnClickListener(v -> performLogin());
+        buttonRegister = findViewById(R.id.buttonRegister);
+        buttonRegister.setOnClickListener(v -> {
+            Intent intent = new Intent(Login.this, RegisterActivity.class);
+            startActivity(intent);
+        });
+
     }
+
 
     private void performLogin() {
         String email = editTextUsername.getText().toString().trim();

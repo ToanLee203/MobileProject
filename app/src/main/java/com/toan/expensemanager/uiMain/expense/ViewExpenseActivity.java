@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AlertDialog;
@@ -34,10 +35,12 @@ public class ViewExpenseActivity extends AppCompatActivity {
     List<Category> categoryList = new ArrayList<>();
     ArrayAdapter<Category> categoryAdapter;
 
+    boolean isFirstSelect = true; // ✅ Tránh gọi fetchExpenses() ngay lần đầu khi spinner tự động chọn
+
     @Override
     protected void onResume() {
         super.onResume();
-        fetchExpenses();
+        fetchExpenses(); // Đảm bảo cập nhật lại danh sách sau khi thêm/sửa
     }
 
     @Override
@@ -77,10 +80,14 @@ public class ViewExpenseActivity extends AppCompatActivity {
         spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                if (!categoryList.isEmpty()) {
-                    selectedCategoryId = categoryList.get(pos).getId();
-                    fetchExpenses();
+                selectedCategoryId = categoryList.get(pos).getId();
+
+                if (isFirstSelect) {
+                    isFirstSelect = false;
+                    return;
                 }
+
+                fetchExpenses();
             }
 
             @Override
@@ -94,7 +101,7 @@ public class ViewExpenseActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<Category>> call, Response<List<Category>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    categoryList = new ArrayList<>();
+                    categoryList.clear();
 
                     // ✅ Thêm mục "Tất cả"
                     Category allCategory = new Category();
@@ -109,8 +116,7 @@ public class ViewExpenseActivity extends AppCompatActivity {
                             android.R.layout.simple_spinner_dropdown_item, categoryList);
                     spinnerCategory.setAdapter(categoryAdapter);
 
-                    selectedCategoryId = -1;
-                    fetchExpenses();
+                    selectedCategoryId = -1; // Mặc định chọn "Tất cả"
                 } else {
                     Toast.makeText(ViewExpenseActivity.this, "Lỗi load danh mục", Toast.LENGTH_SHORT).show();
                 }
@@ -126,20 +132,17 @@ public class ViewExpenseActivity extends AppCompatActivity {
     private void fetchExpenses() {
         SharedPreferences prefs = getSharedPreferences("UserPrefs", MODE_PRIVATE);
         int userId = prefs.getInt("userId", -1);
-        if (userId == -1) return;
+        if (userId == -1 || selectedDate.isEmpty()) return;
 
         expenseList.removeAllViews();
-        if (selectedDate.isEmpty()) return;
 
         ApiService api = RetrofitClient.getInstance().create(ApiService.class);
         Call<List<Expense>> call;
 
         if (selectedCategoryId == -1) {
-            // ✅ Lấy tất cả chi tiêu theo ngày
-            call = api.getExpensesByUserAndDate(userId, selectedDate);
+            call = api.getExpensesByUserAndDate(userId, selectedDate); // Lấy tất cả
         } else {
-            // ✅ Lọc theo danh mục
-            call = api.getByUserDateAndCategory(userId, selectedDate, selectedCategoryId);
+            call = api.getByUserDateAndCategory(userId, selectedDate, selectedCategoryId); // Lọc theo danh mục
         }
 
         call.enqueue(new Callback<List<Expense>>() {
@@ -147,6 +150,10 @@ public class ViewExpenseActivity extends AppCompatActivity {
             public void onResponse(Call<List<Expense>> call, Response<List<Expense>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<Expense> list = response.body();
+
+                    // In log nếu cần kiểm tra
+                    Log.d("DEBUG_EXPENSE", "Số bản ghi: " + list.size());
+
                     if (list.isEmpty()) {
                         Toast.makeText(ViewExpenseActivity.this, "Không có dữ liệu", Toast.LENGTH_SHORT).show();
                     } else {

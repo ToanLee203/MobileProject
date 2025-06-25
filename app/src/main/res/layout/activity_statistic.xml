@@ -29,8 +29,7 @@
             android:layout_height="3dp"
             android:layout_gravity="center"
             android:background="#007AFF"
-            android:layout_marginBottom="24dp"
-            android:radius="2dp" />
+            android:layout_marginBottom="24dp" />
 
         <!-- Date selection row -->
         <LinearLayout
@@ -102,6 +101,13 @@
             </LinearLayout>
         </LinearLayout>
 
+        <!-- ✅ Spinner chuyển xuống đây -->
+        <Spinner
+            android:id="@+id/spinnerCategoryStat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
         <!-- Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnStatistic"
@@ -116,7 +122,6 @@
             android:fontFamily="sans-serif-medium"
             android:letterSpacing="0.05"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent" />
-
 
         <!-- Kết quả tiêu đề -->
         <TextView
