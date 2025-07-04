@@ -5,9 +5,17 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.toan.expensemanager.R;
 import com.toan.expensemanager.data.api.ApiService;
 import com.toan.expensemanager.data.api.RetrofitClient;
@@ -16,7 +24,11 @@ import com.toan.expensemanager.data.model.Expense;
 import com.toan.expensemanager.data.model.ExpenseRequest;
 
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -28,6 +40,7 @@ public class AddExpenseActivity extends AppCompatActivity {
     private TextView tvDate, tvTitle;
     private Spinner spinnerCategory;
     private Button btnSaveExpense;
+    private BottomNavigationView bottomNavigationView;
 
     private List<Category> categoryList = new ArrayList<>();
     private int selectedCategoryId = -1;
@@ -47,7 +60,46 @@ public class AddExpenseActivity extends AppCompatActivity {
         tvDate = findViewById(R.id.tvDate);
         spinnerCategory = findViewById(R.id.spinnerCategory);
         btnSaveExpense = findViewById(R.id.btnSaveExpense);
-        tvTitle = findViewById(R.id.tvTitle); // TextView tiêu đề
+        tvTitle = findViewById(R.id.tvTitle);
+        bottomNavigationView = findViewById(R.id.bottom_navigation);
+
+        // Đánh dấu mục Home là đang chọn
+        bottomNavigationView.setSelectedItemId(R.id.nav_home);
+
+        // Xử lý BottomNavigationView
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                // Chuyển về MainOptionActivity
+                Intent intent = new Intent(this, MainOptionActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_notifications) {
+                // Chuyển đến NotificationsActivity
+                Intent intent = new Intent(this, NotificationsActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_alert) {
+                // Chuyển đến AlertActivity
+                Intent intent = new Intent(this, AlertActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_help) {
+                // Chuyển đến UserProfileActivity
+                Intent intent = new Intent(this, UserProfileActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                finish();
+                return true;
+            }
+            return false;
+        });
 
         // Nhận intent
         Intent intent = getIntent();
@@ -107,7 +159,6 @@ public class AddExpenseActivity extends AppCompatActivity {
                     if (isEdit && expenseId != -1) {
                         loadExpenseById(expenseId);
                     }
-
                 }
             }
 

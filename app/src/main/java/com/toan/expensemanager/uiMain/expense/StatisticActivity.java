@@ -1,11 +1,20 @@
 package com.toan.expensemanager.uiMain.expense;
 
 import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.*;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.toan.expensemanager.R;
 import com.toan.expensemanager.data.api.ApiService;
 import com.toan.expensemanager.data.api.RetrofitClient;
@@ -14,41 +23,86 @@ import com.toan.expensemanager.data.model.Expense;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class StatisticActivity extends AppCompatActivity {
-    TextView tvFromDate, tvToDate, tvResultTitle;
-    Button btnStatistic;
-    LinearLayout layoutResult;
-    Spinner spinnerCategory;
+    private TextView tvFromDate, tvToDate, tvResultTitle;
+    private com.google.android.material.button.MaterialButton btnStatistic;
+    private LinearLayout layoutResult;
+    private Spinner spinnerCategory;
 
-    String fromDate = "", toDate = "";
-    int selectedCategoryId = -1;
+    private String fromDate = "", toDate = "";
+    private int selectedCategoryId = -1;
 
-    List<Category> categoryList = new ArrayList<>();
-    ArrayAdapter<Category> categoryAdapter;
+    private List<Category> categoryList = new ArrayList<>();
+    private ArrayAdapter<Category> categoryAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_statistic);
 
+        // Ánh xạ view
         tvFromDate = findViewById(R.id.tvFromDate);
         tvToDate = findViewById(R.id.tvToDate);
         btnStatistic = findViewById(R.id.btnStatistic);
         layoutResult = findViewById(R.id.layoutResult);
         tvResultTitle = findViewById(R.id.tvResultTitle);
-        spinnerCategory = findViewById(R.id.spinnerCategoryStat); // ✅ đúng ID layout
+        spinnerCategory = findViewById(R.id.spinnerCategoryStat);
+        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
 
+        // Đánh dấu mục Home là đang chọn
+        bottomNavigationView.setSelectedItemId(R.id.nav_home);
+
+        // Xử lý BottomNavigationView
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                // Chuyển về MainOptionActivity
+                Intent intent = new Intent(this, MainOptionActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_notifications) {
+                // Chuyển đến NotificationsActivity
+                Intent intent = new Intent(this, NotificationsActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_alert) {
+                // Chuyển đến AlertActivity
+                Intent intent = new Intent(this, AlertActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                finish();
+                return true;
+            } else if (itemId == R.id.nav_help) {
+                // Chuyển đến UserProfileActivity
+                Intent intent = new Intent(this, UserProfileActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                finish();
+                return true;
+            }
+            return false;
+        });
+
+        // Gắn sự kiện chọn ngày
         tvFromDate.setOnClickListener(v -> pickDate(true));
         tvToDate.setOnClickListener(v -> pickDate(false));
 
-        loadCategories();
-
+        // Gắn sự kiện nút thống kê
         btnStatistic.setOnClickListener(v -> {
             if (!fromDate.isEmpty() && !toDate.isEmpty()) {
                 fetchStatistics();
@@ -57,6 +111,7 @@ public class StatisticActivity extends AppCompatActivity {
             }
         });
 
+        // Gắn sự kiện chọn danh mục
         spinnerCategory.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -66,6 +121,9 @@ public class StatisticActivity extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
+
+        // Tải danh mục
+        loadCategories();
     }
 
     void pickDate(boolean isFrom) {
@@ -152,7 +210,6 @@ public class StatisticActivity extends AppCompatActivity {
     }
 
     private void displaySummary(List<Expense> expenses) {
-
         Map<String, Integer> summary = new HashMap<>();
         int total = 0;
 
@@ -162,7 +219,6 @@ public class StatisticActivity extends AppCompatActivity {
             summary.put(key, summary.getOrDefault(key, 0) + amount);
             total += amount;
         }
-
 
         TextView totalTv = new TextView(this);
         totalTv.setText("Tổng chi: " + new DecimalFormat("#,###").format(total) + "đ");

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F2F2F7">
+    android:background="#F5F5F5">
 
     <!-- ScrollView chứa nội dung chính -->
     <ScrollView
@@ -17,99 +17,89 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:descendantFocusability="afterDescendants"
-            android:focusableInTouchMode="true">
+            android:orientation="vertical">
 
-            <!-- Tiêu đề -->
+            <!-- Tên người dùng (không thay đổi) -->
             <TextView
-                android:id="@+id/tvTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Thêm mới chi tiêu"
-                android:textSize="24sp"
+                android:text="Tên người dùng:"
                 android:textStyle="bold"
-                android:textColor="#1C1C1E"
-                android:layout_marginBottom="24dp" />
-
-            <!-- Số tiền -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Số tiền (VND)"
                 android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:textColor="#333333" />
+
+            <TextView
+                android:id="@+id/tvFullName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingBottom="16dp"
+                android:textColor="#333333"
+                android:textSize="16sp" />
+
+            <!-- Email mới -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Email mới:"
+                android:textSize="14sp"
+                android:textColor="#333333" />
 
             <EditText
-                android:id="@+id/etAmount"
+                android:id="@+id/edtEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="numberDecimal"
-                android:hint="VD: 50000"
+                android:inputType="textEmailAddress"
+                android:hint="Nhập email mới"
                 android:background="@android:drawable/edit_text"
-                android:padding="12dp"
-                android:layout_marginBottom="16dp" />
+                android:padding="12dp" />
 
-            <!-- Mô tả -->
+            <!-- Mật khẩu hiện tại -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mô tả"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:text="Mật khẩu hiện tại:"
+                android:textSize="14sp"
+                android:layout_marginTop="16dp"
+                android:textColor="#333333" />
 
             <EditText
-                android:id="@+id/etDescription"
+                android:id="@+id/edtOldPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="VD: Ăn trưa"
+                android:inputType="textPassword"
+                android:hint="Nhập mật khẩu hiện tại"
                 android:background="@android:drawable/edit_text"
-                android:padding="12dp"
-                android:layout_marginBottom="16dp" />
+                android:padding="12dp" />
 
-            <!-- Ngày -->
+            <!-- Mật khẩu mới -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ngày chi tiêu"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
+                android:text="Mật khẩu mới:"
+                android:textSize="14sp"
+                android:layout_marginTop="16dp"
+                android:textColor="#333333" />
 
-            <TextView
-                android:id="@+id/tvDate"
+            <EditText
+                android:id="@+id/edtNewPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="12dp"
+                android:inputType="textPassword"
+                android:hint="Nhập mật khẩu mới"
                 android:background="@android:drawable/edit_text"
-                android:text="Chọn ngày"
-                android:layout_marginBottom="16dp" />
+                android:padding="12dp" />
 
-            <!-- Danh mục -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Danh mục"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:layout_marginBottom="8dp" />
-
-            <Spinner
-                android:id="@+id/spinnerCategory"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp" />
-
-            <!-- Nút lưu -->
+            <!-- Nút cập nhật -->
             <Button
-                android:id="@+id/btnSaveExpense"
+                android:id="@+id/btnUpdateAccount"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Lưu chi tiêu"
+                android:text="Cập nhật"
+                android:layout_marginTop="24dp"
                 android:backgroundTint="#007AFF"
                 android:textColor="#FFFFFF"
+                android:textAllCaps="false"
+                android:textSize="16sp"
                 android:padding="12dp" />
 
         </LinearLayout>

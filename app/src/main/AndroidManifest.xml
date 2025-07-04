@@ -15,6 +15,18 @@
         android:theme="@style/Theme.ExpenseManager"
         tools:targetApi="31">
         <activity
+            android:name=".uiMain.expense.AlertActivity"
+            android:exported="false" />
+        <activity
+            android:name=".uiMain.expense.NotificationsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".uiMain.expense.UpdateAccountActivity"
+            android:exported="false" />
+        <activity
+            android:name=".uiMain.expense.UserProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".uiMain.login.RegisterActivity"
             android:exported="false" />
         <activity

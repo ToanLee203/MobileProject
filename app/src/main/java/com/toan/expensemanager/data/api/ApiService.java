@@ -5,6 +5,7 @@ import com.toan.expensemanager.data.model.Category;
 import com.toan.expensemanager.data.model.ExpenseRequest;
 import com.toan.expensemanager.data.model.LoginRequest;
 import com.toan.expensemanager.data.model.RegisterRequest;
+import com.toan.expensemanager.data.model.UpdateUserRequest;
 import com.toan.expensemanager.data.model.User;
 import com.toan.expensemanager.data.model.UserResponse;
 
@@ -74,5 +75,13 @@ public interface ApiService {
     // DĂNG KÝ NGUOI DUNG
     @POST("api/User/register")
     Call<User> register(@Body RegisterRequest request);
+    // LẤY THÔNG TIN NGƯỜI DÙNG
+    @GET("api/user/{id}")
+    Call<User> getUserById(@Path("id") int userId);
+
+    // CẬP NHẬT NGƯỜI DÙNG
+    @PUT("api/user/update")
+    Call<User> updateUser(@Body UpdateUserRequest request);
+
 
 }
